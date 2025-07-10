@@ -26,22 +26,18 @@ func NewProjectRepository(logger *zap.Logger) ProjectRepository {
 	}
 }
 
-// DeleteProject implements ProjectRepository.
 func (r *projectRepository) DeleteProject(commands.DeleteProjectCommand) {
 	panic("unimplemented")
 }
 
-// GetProject implements ProjectRepository.
 func (r *projectRepository) GetProject(query queries.GetProjectQuery) dtos.ProjectDto {
 	panic("unimplemented")
 }
 
-// GetProjects implements ProjectRepository.
 func (r *projectRepository) GetProjects() {
 	panic("unimplemented")
 }
 
-// UpdateProject implements ProjectRepository.
 func (r *projectRepository) UpdateProject(commands.UpdateProjectCommand) dtos.ProjectDto {
 	panic("unimplemented")
 }

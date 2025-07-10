@@ -6,8 +6,10 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
-	v1 := router.Group("/api/v1/projects"){
-		// TODO: Implement project routes
+
+	v1 := router.Group("api/v1/projects")
+	{
+		v1.POST("/")
 	}
 
 	return router
