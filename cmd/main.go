@@ -2,11 +2,11 @@ package main
 
 import (
 	"gin-backend/docs"
-	"gin-backend/gin-backend/config"
-	"gin-backend/gin-backend/controllers"
-	"gin-backend/gin-backend/repositories"
-	"gin-backend/gin-backend/routers"
-	"gin-backend/gin-backend/services"
+	"gin-backend/internal/config"
+	"gin-backend/internal/controllers"
+	"gin-backend/internal/repositories"
+	"gin-backend/internal/routers"
+	"gin-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

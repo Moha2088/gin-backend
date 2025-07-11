@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"gin-backend/gin-backend/cqrs/commands"
-	"gin-backend/gin-backend/cqrs/queries"
-	"gin-backend/gin-backend/dtos"
+	"gin-backend/internal/cqrs/commands"
+	"gin-backend/internal/cqrs/queries"
+	"gin-backend/internal/dtos"
 
 	"go.uber.org/zap"
 )

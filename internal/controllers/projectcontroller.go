@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"gin-backend/gin-backend/cqrs/commands"
-	"gin-backend/gin-backend/cqrs/queries"
-	"gin-backend/gin-backend/services"
+	"gin-backend/internal/cqrs/commands"
+	"gin-backend/internal/cqrs/queries"
+	"gin-backend/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

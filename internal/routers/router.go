@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"gin-backend/gin-backend/controllers"
+	"gin-backend/internal/controllers"
 
 	"github.com/gin-gonic/gin"
 )
