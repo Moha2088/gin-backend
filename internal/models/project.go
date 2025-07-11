@@ -4,9 +4,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Project struct {
+	gorm.Model
 	ProjectId    uuid.UUID `"json:"id"`
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`

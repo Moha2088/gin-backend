@@ -4,6 +4,7 @@ import (
 	"gin-backend/internal/cqrs/commands"
 	"gin-backend/internal/cqrs/queries"
 	"gin-backend/internal/dtos"
+	"gorm.io/gorm"
 
 	"go.uber.org/zap"
 )
@@ -18,11 +19,13 @@ type ProjectRepository interface {
 
 type projectRepository struct {
 	logger *zap.Logger
+	db     *gorm.DB
 }
 
-func NewProjectRepository(logger *zap.Logger) ProjectRepository {
+func NewProjectRepository(logger *zap.Logger, db *gorm.DB) ProjectRepository {
 	return &projectRepository{
 		logger: logger,
+		db:     db,
 	}
 }
 
