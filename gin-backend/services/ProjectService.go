@@ -48,6 +48,6 @@ func (p *projectService) GetProjects() {
 
 // UpdateProject implements ProjectService.
 func (p *projectService) UpdateProject(command commands.UpdateProjectCommand) dtos.ProjectDto {
-	project := p.repository.UpdateProject()
+	project := p.repository.UpdateProject(command)
 	return project
 }

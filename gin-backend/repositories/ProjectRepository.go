@@ -43,5 +43,5 @@ func (r *projectRepository) UpdateProject(commands.UpdateProjectCommand) dtos.Pr
 }
 
 func (r *projectRepository) CreateProject(commands.CreateProjectCommand) dtos.ProjectDto {
-
+	panic("unimplemented")
 }

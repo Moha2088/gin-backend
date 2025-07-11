@@ -1,4 +1,50 @@
+definitions:
+  dtos.ProjectDto:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      from:
+        type: string
+      isActive:
+        type: boolean
+      isCompleted:
+        type: boolean
+      name:
+        type: string
+      participants:
+        items:
+          type: string
+        type: array
+      projectId:
+        type: string
+      to:
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /api/v1/projects/:
+    post:
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.ProjectDto'
+        "400":
+          description: Bad Request
+      tags:
+      - projects
+  /api/v1/projects/{id}/:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProjectDto'
+        "400":
+          description: Bad Request
+      tags:
+      - projects
 swagger: "2.0"
