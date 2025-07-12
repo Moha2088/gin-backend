@@ -11,7 +11,7 @@ type Project struct {
 	gorm.Model
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`
-	Participants []string  `json:"participants"`
+	Participants string    `json:"participants"`
 	IsActive     bool      `json:"is_active"`
 	From         time.Time `json:"from"`
 	To           time.Time `json:"to"`

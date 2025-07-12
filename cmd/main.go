@@ -15,6 +15,7 @@ import (
 
 func main() {
 
+	config.LoadEnv()
 	logger := config.SetupLogger()
 	dbConfig := config.NewDatabaseConfig(logger)
 

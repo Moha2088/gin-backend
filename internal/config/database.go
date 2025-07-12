@@ -4,7 +4,6 @@ import (
 	"gin-backend/internal/models"
 	"os"
 
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,13 +18,7 @@ func NewDatabaseConfig(logger *zap.Logger) *DatabaseConfig {
 }
 
 func (c *DatabaseConfig) GetDatabase() *gorm.DB {
-	err := godotenv.Load()
-
-	if err != nil {
-		c.logger.Info("Error loading env file!")
-	}
-
-	connectionString := os.Getenv("DBConnectionString")
+	connectionString := os.Getenv("DBConnection")
 
 	db, err := gorm.Open(postgres.Open(connectionString))
 
