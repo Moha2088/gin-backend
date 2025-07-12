@@ -1,15 +1,14 @@
 package models
 
 import (
+	"gin-backend/internal/dtos"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Project struct {
 	gorm.Model
-	ProjectId    uuid.UUID `"json:"id"`
 	Name         string    `json:"name"`
 	Description  string    `json:"description"`
 	Participants []string  `json:"participants"`
@@ -18,4 +17,18 @@ type Project struct {
 	To           time.Time `json:"to"`
 	IsCompleted  bool      `json:"is_completed"`
 	CreatedAt    time.Time `json:"created_at"`
+}
+
+func (p *Project) ToDto() dtos.ProjectDto {
+	return dtos.ProjectDto{
+		ProjectId:    p.ID,
+		Name:         p.Name,
+		Description:  p.Description,
+		Participants: p.Participants,
+		IsActive:     p.IsActive,
+		From:         p.From,
+		To:           p.To,
+		IsCompleted:  p.IsCompleted,
+		CreatedAt:    p.CreatedAt,
+	}
 }

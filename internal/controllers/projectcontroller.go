@@ -5,9 +5,9 @@ import (
 	"gin-backend/internal/cqrs/queries"
 	"gin-backend/internal/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type ProjectController interface {
@@ -54,23 +54,37 @@ func (s *projectController) GetProject(c *gin.Context) {
 
 	if id := c.Param("id"); id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Project ID is required"})
+		return
 	}
 
-	uuid_string := c.Param("id")
-	uuid, err := uuid.Parse(uuid_string)
+	id := c.Param("id")
+	uint_id, err := (strconv.ParseUint(id, 10, 64))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not parse project ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 	}
 
-	getProjectQuery := queries.GetProjectQuery{ProjectId: uuid}
+	getProjectQuery := queries.GetProjectQuery{ProjectId: uint(uint_id)}
 	project := s.service.GetProject(getProjectQuery)
 
 	c.IndentedJSON(http.StatusOK, project)
 }
 
+// GetProjects godoc
+// @Summary: Gets all projects
+// @Success 200 {object} []dtos.ProjectDto
+// @Failure 404
+// @Tags projects
+// @Router /api/v1/projects/ [get]
 func (s *projectController) GetProjects(c *gin.Context) {
-	panic("unimplemented")
+	projects := s.service.GetProjects(queries.GetAllProjectsQuery{})
+
+	if len(projects) == 0 {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, projects)
 }
 
 func (s *projectController) UpdateProject(c *gin.Context) {
