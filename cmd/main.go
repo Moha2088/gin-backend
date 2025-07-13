@@ -7,7 +7,10 @@ import (
 	"gin-backend/internal/repositories"
 	"gin-backend/internal/routers"
 	"gin-backend/internal/services"
+	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -17,7 +20,21 @@ func main() {
 
 	config.LoadEnv()
 	logger := config.SetupLogger()
-	dbConfig := config.NewDatabaseConfig(logger)
+
+	vaultUri := os.Getenv("VaultUri")
+	credential, err := azidentity.NewDefaultAzureCredential(nil)
+
+	if err != nil {
+		logger.Warn("Failed to create credential")
+	}
+
+	client, err := azsecrets.NewClient(vaultUri, credential, nil)
+
+	if err != nil {
+		logger.Warn("Failed to create client")
+	}
+
+	dbConfig := config.NewDatabaseConfig(logger, client)
 
 	repository := repositories.NewProjectRepository(logger, dbConfig.GetDatabase())
 	service := services.NewProjectService(repository)

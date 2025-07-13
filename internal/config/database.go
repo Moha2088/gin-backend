@@ -1,25 +1,35 @@
 package config
 
 import (
+	"context"
 	"gin-backend/internal/models"
-	"os"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type DatabaseConfig struct {
-	logger *zap.Logger
+	logger       *zap.Logger
+	secretClient *azsecrets.Client
 }
 
-func NewDatabaseConfig(logger *zap.Logger) *DatabaseConfig {
-	return &DatabaseConfig{logger: logger}
+func NewDatabaseConfig(logger *zap.Logger, secretClient *azsecrets.Client) *DatabaseConfig {
+	return &DatabaseConfig{logger: logger, secretClient: secretClient}
 }
 
 func (c *DatabaseConfig) GetDatabase() *gorm.DB {
-	connectionString := os.Getenv("DBConnection")
 
+	latestSecretVersion := ""
+	secretResponse, err := c.secretClient.GetSecret(context.TODO(), "DBConnection", latestSecretVersion, nil)
+
+	if err != nil {
+		c.logger.Warn("Failed to get connectionstring from Key Vault")
+	}
+
+	connectionString := *secretResponse.Value
+	c.logger.Info(connectionString)
 	db, err := gorm.Open(postgres.Open(connectionString))
 
 	if err != nil {

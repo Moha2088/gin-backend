@@ -5,7 +5,6 @@ import (
 	"gin-backend/internal/cqrs/queries"
 	"gin-backend/internal/services"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,13 +57,8 @@ func (s *projectController) GetProject(c *gin.Context) {
 	}
 
 	id := c.Param("id")
-	uint_id, err := (strconv.ParseUint(id, 10, 64))
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-	}
-
-	getProjectQuery := queries.GetProjectQuery{ProjectId: uint(uint_id)}
+	getProjectQuery := queries.GetProjectQuery{ProjectId: c.GetUint(id)}
 	project := s.service.GetProject(getProjectQuery)
 
 	c.IndentedJSON(http.StatusOK, project)
@@ -87,8 +81,29 @@ func (s *projectController) GetProjects(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, projects)
 }
 
+// UpdateProject godoc
+// @Summary: Updates a project by ID
+// @Success 200 {object} dtos.ProjectDto
+// @Failure 400
+// @Tags projects
+// @Router /api/v1/projects/{id}/ [delete]
 func (s *projectController) UpdateProject(c *gin.Context) {
+	var command commands.UpdateProjectCommand
 
+	if id := c.Param("id"); id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Project ID is required"})
+		return
+	}
+
+	id := c.Param("id")
+
+	if err := c.ShouldBindJSON(&comman); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	project := s.service.UpdateProject(c.GetUint(id), command)
+	c.IndentedJSON(http.StatusOK, project)
 }
 
 // DeleteProject godoc

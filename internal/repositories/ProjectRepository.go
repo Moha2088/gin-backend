@@ -16,7 +16,7 @@ type ProjectRepository interface {
 	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
 	GetProject(query queries.GetProjectQuery) dtos.ProjectDto
 	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
-	UpdateProject(command commands.UpdateProjectCommand) dtos.ProjectDto
+	UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto
 	DeleteProject(command commands.DeleteProjectCommand)
 }
 
@@ -65,17 +65,70 @@ func (r *projectRepository) CreateProject(command commands.CreateProjectCommand)
 }
 
 func (r *projectRepository) GetProject(query queries.GetProjectQuery) dtos.ProjectDto {
-	panic("unimplemented")
+
+	var project models.Project
+	response := r.db.Find(&project, query.ProjectId)
+
+	if response.Error != nil {
+		r.logger.Warn("Error getting project by id")
+	}
+
+	return project.ToDto()
 }
 
 func (r *projectRepository) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {
-	panic("")
+	var projects []models.Project
+
+	response := r.db.Find(projects)
+
+	if response.Error != nil {
+		r.logger.Warn("Error getting projects")
+	}
+
+	var dtos []dtos.ProjectDto
+
+	for _, project := range projects {
+		dtos = append(dtos, project.ToDto())
+	}
+
+	return dtos
 }
 
-func (r *projectRepository) UpdateProject(command commands.UpdateProjectCommand) dtos.ProjectDto {
-	panic("")
+func (r *projectRepository) UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto {
+	var project models.Project
+
+	response := r.db.Find(&project, id)
+
+	if response.Error != nil {
+		r.logger.Warn("Error getting project")
+	}
+
+	project.Name = command.Name
+	project.Description = command.Description
+	project.Participants = command.Participants
+	project.From = command.From
+	project.To = command.To
+
+	updateResponse := r.db.Model(&project).Updates(project)
+
+	if updateResponse.Error != nil {
+		r.logger.Warn("Error updating project")
+	}
+
+	return project.ToDto()
 }
 
 func (r *projectRepository) DeleteProject(command commands.DeleteProjectCommand) {
-	panic("")
+	var project models.Project
+	response := r.db.Find(&project, command.ProjectId)
+
+	if response.Error != nil {
+		r.logger.Warn("Error getting project")
+	}
+
+	deleteResponse := r.db.Delete(&project)
+
+	if deleteResponse.Error != nil {
+		r.logger.Warn("Error deleting project")
+	}
 }
