@@ -10,7 +10,7 @@ import (
 type ProjectService interface {
 	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
 	GetProject(query queries.GetProjectQuery) dtos.ProjectDto
-	GetProjects()
+	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
 	UpdateProject(command commands.UpdateProjectCommand) dtos.ProjectDto
 	DeleteProject(command commands.DeleteProjectCommand)
 }
@@ -42,7 +42,7 @@ func (p *projectService) GetProject(query queries.GetProjectQuery) dtos.ProjectD
 }
 
 // GetProjects implements ProjectService.
-func (p *projectService) GetProjects() {
+func (p *projectService) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {
 	panic("unimplemented")
 }
 

@@ -15,9 +15,11 @@ import (
 
 func main() {
 
+	config.LoadEnv()
 	logger := config.SetupLogger()
+	dbConfig := config.NewDatabaseConfig(logger)
 
-	repository := repositories.NewProjectRepository(logger)
+	repository := repositories.NewProjectRepository(logger, dbConfig.GetDatabase())
 	service := services.NewProjectService(repository)
 	controller := controllers.NewProjectController(service)
 
