@@ -9,7 +9,7 @@ import (
 
 type ProjectService interface {
 	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
-	GetProject(query queries.GetProjectQuery) dtos.ProjectDto
+	GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error)
 	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
 	UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto
 	DeleteProject(command commands.DeleteProjectCommand)
@@ -34,9 +34,13 @@ func (p *projectService) DeleteProject(command commands.DeleteProjectCommand) {
 	p.repository.DeleteProject(command)
 }
 
-func (p *projectService) GetProject(query queries.GetProjectQuery) dtos.ProjectDto {
-	project := p.repository.GetProject(query)
-	return project
+func (p *projectService) GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error) {
+	project, err := p.repository.GetProject(query)
+
+	if err != nil {
+		return project, err
+	}
+	return project, nil
 }
 
 func (p *projectService) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {

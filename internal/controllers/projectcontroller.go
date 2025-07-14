@@ -59,7 +59,12 @@ func (s *projectController) GetProject(c *gin.Context) {
 	id := c.Param("id")
 
 	getProjectQuery := queries.GetProjectQuery{ProjectId: c.GetUint(id)}
-	project := s.service.GetProject(getProjectQuery)
+	project, err := s.service.GetProject(getProjectQuery)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
+		return
+	}
 
 	c.IndentedJSON(http.StatusOK, project)
 }
@@ -86,7 +91,7 @@ func (s *projectController) GetProjects(c *gin.Context) {
 // @Success 200 {object} dtos.ProjectDto
 // @Failure 400
 // @Tags projects
-// @Router /api/v1/projects/{id}/ [delete]
+// @Router /api/v1/projects/{id}/ [put]
 func (s *projectController) UpdateProject(c *gin.Context) {
 	var command commands.UpdateProjectCommand
 
@@ -97,7 +102,7 @@ func (s *projectController) UpdateProject(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&comman); err != nil {
+	if err := c.ShouldBindJSON(&command); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}

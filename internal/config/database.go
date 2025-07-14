@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"gin-backend/internal/models"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
@@ -11,25 +10,15 @@ import (
 )
 
 type DatabaseConfig struct {
-	logger       *zap.Logger
-	secretClient *azsecrets.Client
+	logger *zap.Logger
 }
 
 func NewDatabaseConfig(logger *zap.Logger, secretClient *azsecrets.Client) *DatabaseConfig {
-	return &DatabaseConfig{logger: logger, secretClient: secretClient}
+	return &DatabaseConfig{logger: logger}
 }
 
-func (c *DatabaseConfig) GetDatabase() *gorm.DB {
+func (c *DatabaseConfig) GetDatabase(connectionString string) *gorm.DB {
 
-	latestSecretVersion := ""
-	secretResponse, err := c.secretClient.GetSecret(context.TODO(), "DBConnection", latestSecretVersion, nil)
-
-	if err != nil {
-		c.logger.Warn("Failed to get connectionstring from Key Vault")
-	}
-
-	connectionString := *secretResponse.Value
-	c.logger.Info(connectionString)
 	db, err := gorm.Open(postgres.Open(connectionString))
 
 	if err != nil {
