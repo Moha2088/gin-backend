@@ -86,7 +86,7 @@ func (s *projectController) GetProjects(c *gin.Context) {
 // @Success 200 {object} dtos.ProjectDto
 // @Failure 400
 // @Tags projects
-// @Router /api/v1/projects/{id}/ [delete]
+// @Router /api/v1/projects/{id}/ [put]
 func (s *projectController) UpdateProject(c *gin.Context) {
 	var command commands.UpdateProjectCommand
 
@@ -97,7 +97,7 @@ func (s *projectController) UpdateProject(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&comman); err != nil {
+	if err := c.ShouldBindJSON(&command); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}

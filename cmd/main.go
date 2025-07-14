@@ -1,16 +1,14 @@
 package main
 
 import (
+	"context"
 	"gin-backend/docs"
 	"gin-backend/internal/config"
 	"gin-backend/internal/controllers"
 	"gin-backend/internal/repositories"
 	"gin-backend/internal/routers"
 	"gin-backend/internal/services"
-	"os"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -21,22 +19,20 @@ func main() {
 	config.LoadEnv()
 	logger := config.SetupLogger()
 
-	vaultUri := os.Getenv("VaultUri")
-	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	secretClientconfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientconfig.GetSecretClient())
+
+	client := secretClientconfig.GetSecretClient()
+	latestSecretVersion := ""
+	response, err := client.GetSecret(context.TODO(), "DBConnection", latestSecretVersion, nil)
 
 	if err != nil {
-		logger.Warn("Failed to create credential")
+		logger.Warn("Failed to get secret from Key Vault")
 	}
 
-	client, err := azsecrets.NewClient(vaultUri, credential, nil)
+	connectionString := response.Value
 
-	if err != nil {
-		logger.Warn("Failed to create client")
-	}
-
-	dbConfig := config.NewDatabaseConfig(logger, client)
-
-	repository := repositories.NewProjectRepository(logger, dbConfig.GetDatabase())
+	repository := repositories.NewProjectRepository(logger, dbConfig.GetDatabase(*connectionString))
 	service := services.NewProjectService(repository)
 	controller := controllers.NewProjectController(service)
 
