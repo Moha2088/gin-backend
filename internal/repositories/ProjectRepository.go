@@ -7,6 +7,7 @@ import (
 	"gin-backend/internal/models"
 	"time"
 
+	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/errors"
 	"gorm.io/gorm"
 
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ import (
 
 type ProjectRepository interface {
 	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
-	GetProject(query queries.GetProjectQuery) dtos.ProjectDto
+	GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error)
 	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
 	UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto
 	DeleteProject(command commands.DeleteProjectCommand)
@@ -64,22 +65,23 @@ func (r *projectRepository) CreateProject(command commands.CreateProjectCommand)
 	return project.ToDto()
 }
 
-func (r *projectRepository) GetProject(query queries.GetProjectQuery) dtos.ProjectDto {
+func (r *projectRepository) GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error) {
 
 	var project models.Project
 	response := r.db.Find(&project, query.ProjectId)
 
 	if response.Error != nil {
 		r.logger.Warn("Error getting project by id")
+		return dtos.ProjectDto{}, errors.New("Project not found!")
 	}
 
-	return project.ToDto()
+	return project.ToDto(), nil
 }
 
 func (r *projectRepository) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {
 	var projects []models.Project
 
-	response := r.db.Find(projects)
+	response := r.db.Find(&projects)
 
 	if response.Error != nil {
 		r.logger.Warn("Error getting projects")

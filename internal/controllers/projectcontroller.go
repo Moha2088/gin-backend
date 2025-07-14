@@ -59,7 +59,12 @@ func (s *projectController) GetProject(c *gin.Context) {
 	id := c.Param("id")
 
 	getProjectQuery := queries.GetProjectQuery{ProjectId: c.GetUint(id)}
-	project := s.service.GetProject(getProjectQuery)
+	project, err := s.service.GetProject(getProjectQuery)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"Error": err.Error()})
+		return
+	}
 
 	c.IndentedJSON(http.StatusOK, project)
 }
