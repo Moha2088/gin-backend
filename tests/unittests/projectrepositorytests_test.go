@@ -86,4 +86,63 @@ func Test_GetProject_ShouldReturnProject_WhenProjectExists(t *testing.T) {
 	getResponse, err := testRepo.GetProject(getProjectQuery)
 	assert.NotNil(t, getResponse)
 	assert.IsType(t, dtos.ProjectDto{}, getResponse)
+
+	t.Cleanup(func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Fatal("Cleanup failed: ", err.Error())
+		}
+	})
+}
+
+func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	createProjectCommand := commands.CreateProjectCommand{
+		Name:         "TestCreateProject",
+		Description:  "Testdescription",
+		Participants: "Participant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	// Act
+	createResponse := testRepo.CreateProject(createProjectCommand)
+
+	assert.NotEmpty(t, createResponse)
+	assert.IsType(t, dtos.ProjectDto{}, createResponse)
+	assert.NotNil(t, createResponse.ProjectId)
+
+	updateCommand := commands.UpdateProjectCommand{
+		Name:         "UpdatedProjectName",
+		Description:  "Project has been updated",
+		Participants: "NewParticipant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	updateResponse := testRepo.UpdateProject(createResponse.ProjectId, updateCommand)
+
+	assert.NotEmpty(t, updateResponse)
+	assert.IsType(t, dtos.ProjectDto{}, updateResponse)
+	assert.NotEqualValues(t, createResponse.Name, updateResponse.Name)
+	assert.NotEqualValues(t, createResponse.Description, updateResponse.Description)
+	assert.NotEqualValues(t, createResponse.Participants, updateResponse.Participants)
+	assert.NotEqualValues(t, createResponse.From, updateResponse.From)
+	assert.NotEqualValues(t, createResponse.To, updateResponse.To)
+
+	t.Cleanup(func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Fatal("Cleanup failed: ", err.Error())
+		}
+	})
 }
