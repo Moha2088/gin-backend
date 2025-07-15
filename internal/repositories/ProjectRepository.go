@@ -70,7 +70,7 @@ func (r *projectRepository) GetProject(query queries.GetProjectQuery) (dtos.Proj
 	var project models.Project
 	response := r.db.Find(&project, query.ProjectId)
 
-	if response.Error != nil {
+	if response.RowsAffected == 0 {
 		r.logger.Warn("Error getting project by id")
 		return dtos.ProjectDto{}, errors.New("Project not found!")
 	}

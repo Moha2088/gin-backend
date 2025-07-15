@@ -84,12 +84,44 @@ func Test_GetProject_ShouldReturnProject_WhenProjectExists(t *testing.T) {
 	getProjectQuery := queries.GetProjectQuery{ProjectId: createResponse.ProjectId}
 
 	getResponse, err := testRepo.GetProject(getProjectQuery)
+	assert.Nil(t, err)
 	assert.NotNil(t, getResponse)
 	assert.IsType(t, dtos.ProjectDto{}, getResponse)
 
 	t.Cleanup(func() {
 		if err := postgresContainer.Terminate(ctx); err != nil {
 			t.Fatal("Cleanup failed: ", err.Error())
+		}
+	})
+}
+
+func Test_GetProject_ShouldReturnError_WhenProjectDoesNotExists(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	getProjectQuery := queries.GetProjectQuery{ProjectId: 1}
+	expectedErrorMessage := "Project not found!"
+
+	// Act
+	getResponse, err := testRepo.GetProject(getProjectQuery)
+
+	// Assert
+	assert.NotNil(t, getResponse)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, expectedErrorMessage, err.Error())
+
+	t.Cleanup(func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Fatal("Cleanup failed!: ", err.Error())
 		}
 	})
 }
@@ -117,7 +149,6 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 
 	// Act
 	createResponse := testRepo.CreateProject(createProjectCommand)
-
 	assert.NotEmpty(t, createResponse)
 	assert.IsType(t, dtos.ProjectDto{}, createResponse)
 	assert.NotNil(t, createResponse.ProjectId)
