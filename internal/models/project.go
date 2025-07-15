@@ -13,8 +13,8 @@ type Project struct {
 	Description  string    `json:"description"`
 	Participants string    `json:"participants"`
 	IsActive     bool      `json:"is_active"`
-	From         time.Time `json:"from"`
-	To           time.Time `json:"to"`
+	From         time.Time `json:"from" gorm:index:idx_from`
+	To           time.Time `json:"to" gorm:index:idx_to`
 	IsCompleted  bool      `json:"is_completed"`
 	CreatedAt    time.Time `json:"created_at"`
 }
