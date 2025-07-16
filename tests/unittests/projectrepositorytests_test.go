@@ -34,9 +34,10 @@ func Test_CreateProject_ShouldReturnCreatedProjectdto_WhenCreatingProject(t *tes
 		To:           time.Now().Add(time.Hour),
 	}
 
-	response := testRepo.CreateProject(createProjectCommand)
+	response, err := testRepo.CreateProject(createProjectCommand)
 
 	assert.NotEmpty(t, response)
+	assert.Nil(t, err)
 	assert.EqualValues(t, createProjectCommand.Name, response.Name)
 	assert.EqualValues(t, createProjectCommand.Description, response.Description)
 	assert.EqualValues(t, createProjectCommand.Participants, response.Participants)
@@ -74,10 +75,11 @@ func Test_GetProject_ShouldReturnProject_WhenProjectExists(t *testing.T) {
 	}
 
 	// Act
-	createResponse := testRepo.CreateProject(createProjectCommand)
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
 
 	// Assert
 	assert.NotEmpty(t, createResponse)
+	assert.Nil(t, err)
 	assert.IsType(t, dtos.ProjectDto{}, createResponse)
 	assert.NotNil(t, createResponse.ProjectId)
 
@@ -148,10 +150,11 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 	}
 
 	// Act
-	createResponse := testRepo.CreateProject(createProjectCommand)
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
 	assert.NotEmpty(t, createResponse)
 	assert.IsType(t, dtos.ProjectDto{}, createResponse)
 	assert.NotNil(t, createResponse.ProjectId)
+	assert.Nil(t, err)
 
 	updateCommand := commands.UpdateProjectCommand{
 		Name:         "UpdatedProjectName",
@@ -161,9 +164,10 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 		To:           time.Now().Add(time.Hour),
 	}
 
-	updateResponse := testRepo.UpdateProject(createResponse.ProjectId, updateCommand)
+	updateResponse, err := testRepo.UpdateProject(createResponse.ProjectId, updateCommand)
 
 	assert.NotEmpty(t, updateResponse)
+	assert.Nil(t, err)
 	assert.IsType(t, dtos.ProjectDto{}, updateResponse)
 	assert.NotEqualValues(t, createResponse.Name, updateResponse.Name)
 	assert.NotEqualValues(t, createResponse.Description, updateResponse.Description)

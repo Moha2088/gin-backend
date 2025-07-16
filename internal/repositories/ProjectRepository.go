@@ -14,11 +14,11 @@ import (
 )
 
 type ProjectRepository interface {
-	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
+	CreateProject(command commands.CreateProjectCommand) (dtos.ProjectDto, error)
 	GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error)
-	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
-	UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto
-	DeleteProject(command commands.DeleteProjectCommand)
+	GetProjects(query queries.GetAllProjectsQuery) ([]dtos.ProjectDto, error)
+	UpdateProject(id uint, command commands.UpdateProjectCommand) (dtos.ProjectDto, error)
+	DeleteProject(command commands.DeleteProjectCommand) error
 }
 
 type projectRepository struct {
@@ -33,7 +33,7 @@ func NewProjectRepository(logger *zap.Logger, db *gorm.DB) ProjectRepository {
 	}
 }
 
-func (r *projectRepository) CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto {
+func (r *projectRepository) CreateProject(command commands.CreateProjectCommand) (dtos.ProjectDto, error) {
 
 	var isActive bool
 	var isCompleted bool
@@ -60,9 +60,13 @@ func (r *projectRepository) CreateProject(command commands.CreateProjectCommand)
 	}
 
 	createdEntity := r.db.Create(&project)
+
+	if createdEntity.RowsAffected == 0 {
+		return dtos.ProjectDto{}, errors.New("Error creating project!")
+	}
 	r.logger.Sugar().Info("Rows affected: %d", createdEntity.RowsAffected)
 
-	return project.ToDto()
+	return project.ToDto(), nil
 }
 
 func (r *projectRepository) GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error) {
@@ -78,13 +82,13 @@ func (r *projectRepository) GetProject(query queries.GetProjectQuery) (dtos.Proj
 	return project.ToDto(), nil
 }
 
-func (r *projectRepository) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {
+func (r *projectRepository) GetProjects(query queries.GetAllProjectsQuery) ([]dtos.ProjectDto, error) {
 	var projects []models.Project
 
 	response := r.db.Find(&projects)
 
-	if response.Error != nil {
-		r.logger.Warn("Error getting projects")
+	if response.RowsAffected == 0 {
+		return make([]dtos.ProjectDto, 0), errors.New("Error getting projects")
 	}
 
 	var dtos []dtos.ProjectDto
@@ -93,16 +97,16 @@ func (r *projectRepository) GetProjects(query queries.GetAllProjectsQuery) []dto
 		dtos = append(dtos, project.ToDto())
 	}
 
-	return dtos
+	return dtos, nil
 }
 
-func (r *projectRepository) UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto {
+func (r *projectRepository) UpdateProject(id uint, command commands.UpdateProjectCommand) (dtos.ProjectDto, error) {
 	var project models.Project
 
 	response := r.db.Find(&project, id)
 
-	if response.Error != nil {
-		r.logger.Warn("Error getting project")
+	if response.RowsAffected == 0 {
+		return dtos.ProjectDto{}, errors.New("Project not found!")
 	}
 
 	project.Name = command.Name
@@ -113,24 +117,25 @@ func (r *projectRepository) UpdateProject(id uint, command commands.UpdateProjec
 
 	updateResponse := r.db.Model(&project).Updates(project)
 
-	if updateResponse.Error != nil {
-		r.logger.Warn("Error updating project")
+	if updateResponse.RowsAffected == 0 {
+		return dtos.ProjectDto{}, errors.New("Error updating project")
 	}
 
-	return project.ToDto()
+	return project.ToDto(), nil
 }
 
-func (r *projectRepository) DeleteProject(command commands.DeleteProjectCommand) {
+func (r *projectRepository) DeleteProject(command commands.DeleteProjectCommand) error {
 	var project models.Project
 	response := r.db.Find(&project, command.ProjectId)
 
-	if response.Error != nil {
-		r.logger.Warn("Error getting project")
+	if response.RowsAffected == 0 {
+		return errors.New("Project not found!")
 	}
 
 	deleteResponse := r.db.Delete(&project)
 
-	if deleteResponse.Error != nil {
-		r.logger.Warn("Error deleting project")
+	if deleteResponse.RowsAffected == 0 {
+		return errors.New("Error deleting project")
 	}
+	return nil
 }

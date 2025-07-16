@@ -8,11 +8,11 @@ import (
 )
 
 type ProjectService interface {
-	CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto
+	CreateProject(command commands.CreateProjectCommand) (dtos.ProjectDto, error)
 	GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error)
-	GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto
-	UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto
-	DeleteProject(command commands.DeleteProjectCommand)
+	GetProjects(query queries.GetAllProjectsQuery) ([]dtos.ProjectDto, error)
+	UpdateProject(id uint, command commands.UpdateProjectCommand) (dtos.ProjectDto, error)
+	DeleteProject(command commands.DeleteProjectCommand) error
 }
 
 type projectService struct {
@@ -25,29 +25,30 @@ func NewProjectService(repository repositories.ProjectRepository) ProjectService
 	}
 }
 
-func (p *projectService) CreateProject(command commands.CreateProjectCommand) dtos.ProjectDto {
-	project := p.repository.CreateProject(command)
-	return project
+func (p *projectService) CreateProject(command commands.CreateProjectCommand) (dtos.ProjectDto, error) {
+	project, err := p.repository.CreateProject(command)
+	return project, err
 }
 
-func (p *projectService) DeleteProject(command commands.DeleteProjectCommand) {
-	p.repository.DeleteProject(command)
+func (p *projectService) DeleteProject(command commands.DeleteProjectCommand) error {
+	err := p.repository.DeleteProject(command)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *projectService) GetProject(query queries.GetProjectQuery) (dtos.ProjectDto, error) {
 	project, err := p.repository.GetProject(query)
-
-	if err != nil {
-		return project, err
-	}
-	return project, nil
+	return project, err
 }
 
-func (p *projectService) GetProjects(query queries.GetAllProjectsQuery) []dtos.ProjectDto {
-	panic("unimplemented")
+func (p *projectService) GetProjects(query queries.GetAllProjectsQuery) ([]dtos.ProjectDto, error) {
+	projects, err := p.repository.GetProjects(query)
+	return projects, err
 }
 
-func (p *projectService) UpdateProject(id uint, command commands.UpdateProjectCommand) dtos.ProjectDto {
-	project := p.repository.UpdateProject(id, command)
-	return project
+func (p *projectService) UpdateProject(id uint, command commands.UpdateProjectCommand) (dtos.ProjectDto, error) {
+	project, err := p.repository.UpdateProject(id, command)
+	return project, err
 }
