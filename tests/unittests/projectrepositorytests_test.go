@@ -128,6 +128,50 @@ func Test_GetProject_ShouldReturnError_WhenProjectDoesNotExists(t *testing.T) {
 	})
 }
 
+func Test_GetProjects_ShouldReturnProjects_WhenProjectsExists(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	createProjectCommand := commands.CreateProjectCommand{
+		Name:         "TestCreateProject",
+		Description:  "Testdescription",
+		Participants: "Participant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	// Act
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
+
+	assert.NotNil(t, createResponse)
+	assert.Nil(t, err)
+
+	getProjectsQuery := queries.GetAllProjectsQuery{}
+
+	getResponse, err := testRepo.GetProjects(getProjectsQuery)
+
+	// Assert
+	assert.NotNil(t, getResponse)
+	assert.Nil(t, err)
+	assert.IsType(t, []dtos.ProjectDto{}, getResponse)
+	assert.Len(t, getResponse, 1)
+
+	t.Cleanup(func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Fatal("Cleanup failed!: ", err.Error())
+		}
+	})
+}
+
 func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
