@@ -225,3 +225,47 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 		}
 	})
 }
+
+func Test_DeleteProject_ShouldDeleteProject(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	createProjectCommand := commands.CreateProjectCommand{
+		Name:         "TestCreateProject",
+		Description:  "Testdescription",
+		Participants: "Participant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	expectedErrorMessage := "Project not found!"
+
+	// Act
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
+	assert.NotEmpty(t, createResponse)
+	assert.IsType(t, dtos.ProjectDto{}, createResponse)
+	assert.NotNil(t, createResponse.ProjectId)
+	assert.Nil(t, err)
+
+	deleteProjectCommand := commands.DeleteProjectCommand{ProjectId: createResponse.ProjectId}
+	err = testRepo.DeleteProject(deleteProjectCommand)
+	assert.Nil(t, err)
+
+	getProjectQuery := queries.GetProjectQuery{createResponse.ProjectId}
+
+	getResponse, err := testRepo.GetProject(getProjectQuery)
+
+	//Assert
+	assert.NotNil(t, getResponse)
+	assert.NotNil(t, err)
+	assert.Equal(t, expectedErrorMessage, err.Error())
+}
