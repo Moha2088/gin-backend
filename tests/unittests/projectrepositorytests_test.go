@@ -34,9 +34,10 @@ func Test_CreateProject_ShouldReturnCreatedProjectdto_WhenCreatingProject(t *tes
 		To:           time.Now().Add(time.Hour),
 	}
 
-	response := testRepo.CreateProject(createProjectCommand)
+	response, err := testRepo.CreateProject(createProjectCommand)
 
 	assert.NotEmpty(t, response)
+	assert.Nil(t, err)
 	assert.EqualValues(t, createProjectCommand.Name, response.Name)
 	assert.EqualValues(t, createProjectCommand.Description, response.Description)
 	assert.EqualValues(t, createProjectCommand.Participants, response.Participants)
@@ -74,10 +75,11 @@ func Test_GetProject_ShouldReturnProject_WhenProjectExists(t *testing.T) {
 	}
 
 	// Act
-	createResponse := testRepo.CreateProject(createProjectCommand)
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
 
 	// Assert
 	assert.NotEmpty(t, createResponse)
+	assert.Nil(t, err)
 	assert.IsType(t, dtos.ProjectDto{}, createResponse)
 	assert.NotNil(t, createResponse.ProjectId)
 
@@ -126,6 +128,50 @@ func Test_GetProject_ShouldReturnError_WhenProjectDoesNotExists(t *testing.T) {
 	})
 }
 
+func Test_GetProjects_ShouldReturnProjects_WhenProjectsExists(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	createProjectCommand := commands.CreateProjectCommand{
+		Name:         "TestCreateProject",
+		Description:  "Testdescription",
+		Participants: "Participant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	// Act
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
+
+	assert.NotNil(t, createResponse)
+	assert.Nil(t, err)
+
+	getProjectsQuery := queries.GetAllProjectsQuery{}
+
+	getResponse, err := testRepo.GetProjects(getProjectsQuery)
+
+	// Assert
+	assert.NotNil(t, getResponse)
+	assert.Nil(t, err)
+	assert.IsType(t, []dtos.ProjectDto{}, getResponse)
+	assert.Len(t, getResponse, 1)
+
+	t.Cleanup(func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Fatal("Cleanup failed!: ", err.Error())
+		}
+	})
+}
+
 func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
@@ -148,10 +194,11 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 	}
 
 	// Act
-	createResponse := testRepo.CreateProject(createProjectCommand)
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
 	assert.NotEmpty(t, createResponse)
 	assert.IsType(t, dtos.ProjectDto{}, createResponse)
 	assert.NotNil(t, createResponse.ProjectId)
+	assert.Nil(t, err)
 
 	updateCommand := commands.UpdateProjectCommand{
 		Name:         "UpdatedProjectName",
@@ -161,9 +208,10 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 		To:           time.Now().Add(time.Hour),
 	}
 
-	updateResponse := testRepo.UpdateProject(createResponse.ProjectId, updateCommand)
+	updateResponse, err := testRepo.UpdateProject(createResponse.ProjectId, updateCommand)
 
 	assert.NotEmpty(t, updateResponse)
+	assert.Nil(t, err)
 	assert.IsType(t, dtos.ProjectDto{}, updateResponse)
 	assert.NotEqualValues(t, createResponse.Name, updateResponse.Name)
 	assert.NotEqualValues(t, createResponse.Description, updateResponse.Description)
@@ -176,4 +224,48 @@ func Test_UpdateProject_ShouldReturnUpdatedProjectdto(t *testing.T) {
 			t.Fatal("Cleanup failed: ", err.Error())
 		}
 	})
+}
+
+func Test_DeleteProject_ShouldDeleteProject(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	logger := config.SetupLogger()
+	secretClientConfig := config.NewSecretClientConfig(logger)
+	dbConfig := config.NewDatabaseConfig(logger, secretClientConfig.GetSecretClient())
+	postgresContainer := fixtures.SetupTestContainer(ctx, t)
+	connectionString, err := postgresContainer.ConnectionString(ctx)
+	assert.NoError(t, err)
+
+	testDb := dbConfig.GetDatabase(connectionString)
+	testRepo := repositories.NewProjectRepository(logger, testDb)
+
+	createProjectCommand := commands.CreateProjectCommand{
+		Name:         "TestCreateProject",
+		Description:  "Testdescription",
+		Participants: "Participant",
+		From:         time.Now(),
+		To:           time.Now().Add(time.Hour),
+	}
+
+	expectedErrorMessage := "Project not found!"
+
+	// Act
+	createResponse, err := testRepo.CreateProject(createProjectCommand)
+	assert.NotEmpty(t, createResponse)
+	assert.IsType(t, dtos.ProjectDto{}, createResponse)
+	assert.NotNil(t, createResponse.ProjectId)
+	assert.Nil(t, err)
+
+	deleteProjectCommand := commands.DeleteProjectCommand{ProjectId: createResponse.ProjectId}
+	err = testRepo.DeleteProject(deleteProjectCommand)
+	assert.Nil(t, err)
+
+	getProjectQuery := queries.GetProjectQuery{ProjectId: createResponse.ProjectId}
+
+	getResponse, err := testRepo.GetProject(getProjectQuery)
+
+	//Assert
+	assert.NotNil(t, getResponse)
+	assert.NotNil(t, err)
+	assert.Equal(t, expectedErrorMessage, err.Error())
 }

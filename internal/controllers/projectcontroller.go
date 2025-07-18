@@ -39,7 +39,12 @@ func (s *projectController) CreateProject(c *gin.Context) {
 		return
 	}
 
-	dto := s.service.CreateProject(command)
+	dto, err := s.service.CreateProject(command)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error: ": err.Error()})
+		return
+	}
 	c.IndentedJSON(http.StatusCreated, dto)
 }
 
@@ -76,10 +81,15 @@ func (s *projectController) GetProject(c *gin.Context) {
 // @Tags projects
 // @Router /api/v1/projects/ [get]
 func (s *projectController) GetProjects(c *gin.Context) {
-	projects := s.service.GetProjects(queries.GetAllProjectsQuery{})
+	projects, err := s.service.GetProjects(queries.GetAllProjectsQuery{})
 
 	if len(projects) == 0 {
 		c.Status(http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error: ": err.Error()})
 		return
 	}
 
@@ -107,7 +117,12 @@ func (s *projectController) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	project := s.service.UpdateProject(c.GetUint(id), command)
+	project, err := s.service.UpdateProject(c.GetUint(id), command)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error: ": err.Error()})
+		return
+	}
 	c.IndentedJSON(http.StatusOK, project)
 }
 
@@ -125,6 +140,11 @@ func (s *projectController) DeleteProject(c *gin.Context) {
 		return
 	}
 
-	s.service.DeleteProject(command)
+	err := s.service.DeleteProject(command)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error: ": err.Error()})
+		return
+	}
 	c.Status(http.StatusNoContent)
 }
