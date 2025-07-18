@@ -9,6 +9,8 @@ require (
 	go.uber.org/zap v1.27.0
 )
 
+require github.com/gin-contrib/cors v1.7.6 // indirect
+
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.1 // indirect

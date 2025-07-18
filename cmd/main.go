@@ -9,6 +9,7 @@ import (
 	"gin-backend/internal/routers"
 	"gin-backend/internal/services"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -37,6 +38,8 @@ func main() {
 	controller := controllers.NewProjectController(service)
 
 	router := routers.SetupRouter(controller)
+
+	router.Use(cors.Default())
 
 	// Swagger setup
 	docs.SwaggerInfo.BasePath = "/api/v1"

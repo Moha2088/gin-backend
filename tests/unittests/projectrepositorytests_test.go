@@ -260,7 +260,7 @@ func Test_DeleteProject_ShouldDeleteProject(t *testing.T) {
 	err = testRepo.DeleteProject(deleteProjectCommand)
 	assert.Nil(t, err)
 
-	getProjectQuery := queries.GetProjectQuery{createResponse.ProjectId}
+	getProjectQuery := queries.GetProjectQuery{ProjectId: createResponse.ProjectId}
 
 	getResponse, err := testRepo.GetProject(getProjectQuery)
 
