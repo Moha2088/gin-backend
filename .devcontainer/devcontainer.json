@@ -15,7 +15,8 @@
 
 	"portsAttributes": {
 		"8081": {
-			"label": "Application"
+			"label": "Application",
+			"onAutoForward": "notify"
 		}
 	},
 
